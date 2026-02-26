@@ -1,0 +1,13 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+.idea
+*.iml
+*.ipr
+*.iws
+.env
+.env.local
+*.log
+results/
+application.yml

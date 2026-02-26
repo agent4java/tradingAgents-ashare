@@ -1,0 +1,36 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: tradingagents-ashare
+
+# TradingAgents (A-share) config - aligned with reference default_config
+tradingagents:
+  llm:
+    provider: openai
+    deep-think-model: gpt-4
+    quick-think-model: gpt-4-mini
+    backend-url: https://api.openai.com/v1
+  debate:
+    max-debate-rounds: 1
+    max-risk-discuss-rounds: 1
+  data:
+    vendor: tushare
+  results-dir: ./results
+
+# Tushare Pro (https://tushare.pro)
+tushare:
+  token: ${TUSHARE_TOKEN:}
+  api-url: https://api.tushare.pro
+
+# finAgent (D:\AI\finAgent) - LLM for agents
+finagent:
+  llm:
+    provider: ${FINAGENT_LLM_PROVIDER:openai}
+    base-url: ${FINAGENT_LLM_BASE_URL:https://api.openai.com/v1}
+    api-key: ${FINAGENT_LLM_API_KEY:${OPENAI_API_KEY:}}
+    model: ${FINAGENT_LLM_MODEL:gpt-4}
+    temperature: 0.7
+    max-tokens: 2000
+    timeout-seconds: 60
