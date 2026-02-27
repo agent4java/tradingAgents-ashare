@@ -89,18 +89,18 @@ public class TradingController {
                 );
 
                 // send final summary event
-                AgentState state = result.getState();
-                TradeDecision decision = result.getDecision();
-                Map<String, Object> summary = new HashMap<>();
-                summary.put("stage", "summary");
-                summary.put("symbol", state.getCompanyOfInterest());
-                summary.put("tradeDate", state.getTradeDate());
-                summary.put("decision", decision);
-                summary.put("ts", Instant.now().toString());
+                // AgentState state = result.getState();
+                // TradeDecision decision = result.getDecision();
+                // Map<String, Object> summary = new HashMap<>();
+                // summary.put("stage", "summary");
+                // summary.put("symbol", state.getCompanyOfInterest());
+                // summary.put("tradeDate", state.getTradeDate());
+                // summary.put("decision", decision);
+                // summary.put("ts", Instant.now().toString());
 
                 emitter.send(SseEmitter.event()
                         .name("complete")
-                        .data(summary));
+                        .data("推演结束"));
                 emitter.complete();
             } catch (Exception e) {
                 emitter.completeWithError(e);

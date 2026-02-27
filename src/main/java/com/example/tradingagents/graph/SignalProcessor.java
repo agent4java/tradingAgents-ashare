@@ -33,7 +33,7 @@ public class SignalProcessor {
         //     d.setAction(TradeDecision.Action.HOLD);
         //     d.setReason("无法解析明确方向，默认观望");
         // }
-        d.setReason(text.length() > 500 ? text.substring(0, 500) + "..." : text);
+        d.setReason(text);
         return d;
     }
 }
