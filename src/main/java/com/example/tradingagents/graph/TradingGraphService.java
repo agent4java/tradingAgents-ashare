@@ -55,35 +55,63 @@ public class TradingGraphService {
      * Run trading agents pipeline for symbol on tradeDate. selectedAnalysts: "market", "social", "news", "fundamentals".
      */
     public PropagateResult propagate(String symbol, String tradeDateStr, List<String> selectedAnalysts) {
+        return propagate(symbol, tradeDateStr, selectedAnalysts, new NoopTradingProgressListener());
+    }
+
+    /**
+     * Run trading agents pipeline with optional progress listener for streaming.
+     */
+    public PropagateResult propagate(String symbol,
+                                     String tradeDateStr,
+                                     List<String> selectedAnalysts,
+                                     TradingProgressListener listener) {
+        TradingProgressListener effectiveListener = listener != null ? listener : new NoopTradingProgressListener();
         LocalDate tradeDate = LocalDate.parse(tradeDateStr);
         AgentState state = new AgentState();
         state.setCompanyOfInterest(symbol);
         state.setTradeDate(tradeDateStr);
 
+        // 分析师阶段：行情、情绪、新闻、基本面
         List<String> analysts = selectedAnalysts != null && !selectedAnalysts.isEmpty()
                 ? selectedAnalysts
                 : List.of("market", "social", "news", "fundamentals");
 
         if (analysts.contains("market")) {
             state.setMarketReport(marketAnalyst.produceReport(symbol, tradeDate));
+            effectiveListener.onStage(ThinkingStage.ANALYST_MARKET, state);
         }
         if (analysts.contains("social")) {
             state.setSentimentReport(sentimentAnalyst.produceReport(symbol, tradeDate));
+            effectiveListener.onStage(ThinkingStage.ANALYST_SENTIMENT, state);
         }
         if (analysts.contains("news")) {
             state.setNewsReport(newsAnalyst.produceReport(symbol, tradeDate));
+            effectiveListener.onStage(ThinkingStage.ANALYST_NEWS, state);
         }
         if (analysts.contains("fundamentals")) {
             state.setFundamentalsReport(fundamentalsAnalyst.produceReport(symbol, tradeDate));
+            effectiveListener.onStage(ThinkingStage.ANALYST_FUNDAMENTALS, state);
         }
 
+        // 研究投资辩论阶段：多头、空头、裁判
         investDebateService.runDebate(state);
+        effectiveListener.onStage(ThinkingStage.INVEST_DEBATE, state);
+
+        // 交易员阶段：投资计划
         traderService.producePlan(state);
+        effectiveListener.onStage(ThinkingStage.TRADER, state);
+
+        // 风险辩论阶段：激进、保守、裁判
         riskDebateService.runDebate(state);
+        effectiveListener.onStage(ThinkingStage.RISK_DEBATE, state);
+
+        // 组合经理阶段：最终决策
         portfolioManager.produceFinalDecision(state);
+        effectiveListener.onStage(ThinkingStage.PORTFOLIO, state);
 
         TradeDecision decision = signalProcessor.processSignal(state.getFinalTradeDecision());
         state.setProcessedDecision(decision);
+        effectiveListener.onStage(ThinkingStage.FINAL_DECISION, state);
 
         return new PropagateResult(state, decision);
     }

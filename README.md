@@ -94,6 +94,51 @@ finagent 相关配置请按 `finagent-spring-boot-starter` 文档在 `applicatio
   }
   ```
 
+- **POST** `/api/trading/propagate/stream`
+
+  以 **Server-Sent Events (SSE)** 实时流的方式返回整个多智能体链路的思考过程，载荷为 JSON，其中 `markdown` 字段可直接在前端以 markdown 渲染。
+
+  请求体与 `/api/trading/propagate` 相同，例如：
+
+  ```json
+  {
+    "symbol": "600519.SH",
+    "tradeDate": "2026-01-15",
+    "selectedAnalysts": ["market", "social", "news", "fundamentals"],
+    "maxDebateRounds": 1,
+    "maxRiskDiscussRounds": 1
+  }
+  ```
+
+  响应为 `text/event-stream`，每个事件形如：
+
+  ```text
+  event: stage
+  data: {"stage":"analyst_market","markdown":"## 分析师阶段：市场报告\n\n...", "symbol":"600519.SH","tradeDate":"2026-01-15","ts":"2026-02-26T12:00:00Z"}
+
+  event: stage
+  data: {"stage":"invest_debate","markdown":"## 研究投资辩论阶段\n\n- 多头观点：\n  - ...", ...}
+
+  ...
+
+  event: complete
+  data: {"stage":"summary","symbol":"600519.SH","tradeDate":"2026-01-15","decision":{...},"ts":"2026-02-26T12:00:05Z"}
+  ```
+
+  - `stage`: 当前推送的阶段标识，例如 `analyst_market` / `invest_debate` / `trader` / `risk_debate` / `portfolio` / `final_decision` / `summary`
+  - `markdown`: 当前阶段的 markdown 文本（例如“分析师阶段：市场报告”“研究投资辩论阶段”等）
+  - `decision`: 仅在 `complete` 事件中出现，对应结构化 `TradeDecision`
+
+  前端可使用原生 `EventSource`：
+
+  ```js
+  const es = new EventSource('/api/trading/propagate/stream', { withCredentials: false });
+  es.onmessage = (event) => {
+    const payload = JSON.parse(event.data);
+    // payload.markdown -> 渲染 markdown；payload.stage -> 分组展示
+  };
+  ```
+
 ## 项目结构
 
 - `config/` — 配置与属性（TradingAgents、Tushare、Finagent 占位）
