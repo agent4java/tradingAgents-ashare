@@ -23,17 +23,17 @@ public class SignalProcessor {
             return d;
         }
         String text = fullSignal.trim();
-        if (BUY.matcher(text).find()) {
-            d.setAction(TradeDecision.Action.BUY);
-        } else if (SELL.matcher(text).find()) {
-            d.setAction(TradeDecision.Action.SELL);
-        } else if (HOLD.matcher(text).find()) {
-            d.setAction(TradeDecision.Action.HOLD);
-        } else {
-            d.setAction(TradeDecision.Action.HOLD);
-            d.setReason("无法解析明确方向，默认观望");
-        }
-        d.setReason(text.length() > 500 ? text.substring(0, 500) + "..." : text);
+        // if (BUY.matcher(text).find()) {
+        //     d.setAction(TradeDecision.Action.BUY);
+        // } else if (SELL.matcher(text).find()) {
+        //     d.setAction(TradeDecision.Action.SELL);
+        // } else if (HOLD.matcher(text).find()) {
+        //     d.setAction(TradeDecision.Action.HOLD);
+        // } else {
+        //     d.setAction(TradeDecision.Action.HOLD);
+        //     d.setReason("无法解析明确方向，默认观望");
+        // }
+        d.setReason(text);
         return d;
     }
 }

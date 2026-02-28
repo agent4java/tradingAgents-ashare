@@ -1,44 +1,37 @@
 package com.example.tradingagents.agents.analysts;
 
-import com.example.tradingagents.data.api.NewsService;
-import com.finagent.api.Agent;
-import com.finagent.api.AgentRunner;
-import com.finagent.api.RunRequest;
-import com.finagent.api.RunResult;
-import com.finagent.core.AgentDefinition;
+import com.agent4j.api.Agent;
+import com.agent4j.api.AgentRunner;
+import com.agent4j.api.RunRequest;
+import com.agent4j.api.RunResult;
+import com.agent4j.api.Tool;
+import com.agent4j.core.AgentDefinition;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class SentimentAnalystService {
 
-    private static final String SYSTEM_PROMPT = "你是 A 股情绪分析师。根据给定的新闻与舆情信息，用中文撰写简洁的市场情绪报告，包括多空情绪、热点、短期情绪倾向。";
+    private static final String SYSTEM_PROMPT = "你是 A 股情绪分析师。请使用 get_news、get_global_news 工具获取新闻与舆情信息后，用中文撰写简洁的市场情绪报告，包括多空情绪、热点、短期情绪倾向。";
 
-    private final NewsService newsService;
     private final AgentRunner agentRunner;
+    private final List<Tool> tushareTools;
 
-    public SentimentAnalystService(NewsService newsService, AgentRunner agentRunner) {
-        this.newsService = newsService;
+    public SentimentAnalystService(AgentRunner agentRunner, List<Tool> tushareTools) {
         this.agentRunner = agentRunner;
+        this.tushareTools = tushareTools;
     }
 
     public String produceReport(String symbol, LocalDate tradeDate) {
-        List<Map<String, Object>> news = newsService.getNews(symbol, tradeDate, 20);
-        String dataContext = news.stream()
-                .map(m -> String.valueOf(m.get("title")) + ": " + String.valueOf(m.get("content")))
-                .collect(Collectors.joining("\n"));
-        if (dataContext.isEmpty()) {
-            dataContext = "暂无新闻数据。";
-        }
-        String userMessage = "标的: " + symbol + ", 交易日期: " + tradeDate + "\n\n新闻与舆情:\n" + dataContext;
+        String userMessage = "标的: " + symbol + ", 交易日期: " + tradeDate
+                + "\n\n请先调用 get_news、get_global_news 获取新闻与舆情数据，再撰写情绪分析报告。";
 
         Agent agent = new AgentDefinition()
                 .setName("sentiment-analyst")
                 .setInstructions(SYSTEM_PROMPT)
+                .setTools(tushareTools)
                 .build();
         RunRequest request = RunRequest.builder()
                 .input(userMessage)

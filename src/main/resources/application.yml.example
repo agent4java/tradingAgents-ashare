@@ -24,13 +24,13 @@ tushare:
   token: ${TUSHARE_TOKEN:}
   api-url: https://api.tushare.pro
 
-# finAgent (D:\AI\finAgent) - LLM for agents
-finagent:
+# agent4j - LLM for agents
+agent4j:
   llm:
-    provider: ${FINAGENT_LLM_PROVIDER:openai}
-    base-url: ${FINAGENT_LLM_BASE_URL:https://api.openai.com/v1}
-    api-key: ${FINAGENT_LLM_API_KEY:${OPENAI_API_KEY:}}
-    model: ${FINAGENT_LLM_MODEL:gpt-4}
+    provider: ${AGENT4J_LLM_PROVIDER:openai}
+    base-url: ${AGENT4J_LLM_BASE_URL:https://api.openai.com/v1}
+    api-key: ${AGENT4J_LLM_API_KEY:${OPENAI_API_KEY:}}
+    model: ${AGENT4J_LLM_MODEL:gpt-4}
     temperature: 0.7
     max-tokens: 2000
     timeout-seconds: 60

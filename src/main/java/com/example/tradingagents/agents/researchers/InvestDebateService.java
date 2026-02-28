@@ -3,11 +3,11 @@ package com.example.tradingagents.agents.researchers;
 import com.example.tradingagents.config.TradingAgentsProperties;
 import com.example.tradingagents.domain.AgentState;
 import com.example.tradingagents.domain.InvestDebateState;
-import com.finagent.api.Agent;
-import com.finagent.api.AgentRunner;
-import com.finagent.api.RunRequest;
-import com.finagent.api.RunResult;
-import com.finagent.core.AgentDefinition;
+import com.agent4j.api.Agent;
+import com.agent4j.api.AgentRunner;
+import com.agent4j.api.RunRequest;
+import com.agent4j.api.RunResult;
+import com.agent4j.core.AgentDefinition;
 import org.springframework.stereotype.Service;
 
 /**
