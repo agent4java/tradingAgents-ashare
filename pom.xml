@@ -15,7 +15,7 @@
     <artifactId>tradingagents-ashare</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <name>tradingagents-ashare</name>
-    <description>A-share multi-agent trading framework (Spring Boot, finagent, Tushare)</description>
+    <description>A-share multi-agent trading framework (Spring Boot, agent4j, Tushare)</description>
 
     <properties>
         <java.version>17</java.version>
@@ -27,8 +27,8 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.finagent</groupId>
-            <artifactId>finagent-spring-boot-starter</artifactId>
+            <groupId>com.agent4j</groupId>
+            <artifactId>agent4j-spring-boot-starter</artifactId>
             <version>0.1.0-SNAPSHOT</version>
         </dependency>
         <dependency>

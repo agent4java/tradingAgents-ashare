@@ -10,12 +10,12 @@
 
 ## 构建与运行
 
-1. **安装自研 finagent 依赖（如未发布到中央仓库）**
+1. **安装 agent4j 依赖（如未发布到中央仓库）**
 
-   若 `com.finagent:finagent-spring-boot-starter` 不在公共仓库，请先安装到本地或配置私服：
+   若 `com.agent4j:agent4j-spring-boot-starter` 不在公共仓库，请先安装到本地或配置私服：
 
    ```bash
-   # 在 finagent 项目目录执行
+   # 在 agent4j 项目目录执行
    mvn install
    ```
 
@@ -54,7 +54,7 @@
 | `tushare.token` | Tushare Pro Token | 需配置 |
 | `tushare.api-url` | Tushare API 地址 | https://api.tushare.pro |
 
-finagent 相关配置请按 `finagent-spring-boot-starter` 文档在 `application.yml` 或 `FinagentConfig` 中配置。
+agent4j 相关配置请按 `agent4j-spring-boot-starter` 文档在 `application.yml` 或 `Agent4jConfig` 中配置。
 
 ## API
 
@@ -141,7 +141,7 @@ finagent 相关配置请按 `finagent-spring-boot-starter` 文档在 `applicatio
 
 ## 项目结构
 
-- `config/` — 配置与属性（TradingAgents、Tushare、Finagent 占位）
+- `config/` — 配置与属性（TradingAgents、Tushare、Agent4j 占位）
 - `domain/` — 状态与决策模型（AgentState、TradeDecision 等）
 - `data/api/` — 数据接口；`data/tushare/` — Tushare 实现
 - `agents/analysts|researchers|trader|risk|portfolio/` — 各角色服务

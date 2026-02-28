@@ -1,6 +1,6 @@
 package com.example.tradingagents.tools;
 
-import com.finagent.api.Tool;
+import com.agent4j.api.Tool;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
