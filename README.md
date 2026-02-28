@@ -10,7 +10,7 @@
 
 ## 构建与运行
 
-1. **安装 agent4j 依赖（如未发布到中央仓库）**
+1. **安装 [agent4j](https://github.com/agent4java/agent4j) 依赖（如未发布到中央仓库）**
 
    若 `com.agent4j:agent4j-spring-boot-starter` 不在公共仓库，请先安装到本地或配置私服：
 
@@ -74,7 +74,7 @@ agent4j 相关配置请按 `agent4j-spring-boot-starter` 文档在 `application.
 
   - `symbol`: A 股代码，如 `600519.SH`、`000001.SZ`
   - `tradeDate`: 交易日期，`yyyy-MM-dd`
-  - `selectedAnalysts`: 可选，默认全部
+  - `selectedAnalysts`: 可选，默认全部。**说明**：舆论情绪、公司新闻相关接口仍在对接中。
   - `maxDebateRounds` / `maxRiskDiscussRounds`: 可选，覆盖配置
 
   查询参数：`includeState=true` 时响应中返回完整 `state`。
@@ -155,4 +155,5 @@ agent4j 相关配置请按 `agent4j-spring-boot-starter` 文档在 `application.
 ## 参考
 
 - [TradingAgents (TauricResearch)](https://github.com/TauricResearch/TradingAgents)
+- [agent4j](https://github.com/agent4java/agent4j) — 轻量级多智能体框架
 - [Tushare Pro 文档](https://tushare.pro/document/2)
