@@ -34,3 +34,10 @@ agent4j:
     temperature: 0.7
     max-tokens: 2000
     timeout-seconds: 60
+
+# wechatbot (wechatBot4j / iLink Bot)
+wechatbot:
+  base-url: https://ilinkai.weixin.qq.com
+  cdn-base-url: https://novac2c.cdn.weixin.qq.com/c2c
+  auto-start: false
+  force-relogin: false   # true: ignore local session and force QR login on startup

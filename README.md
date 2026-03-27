@@ -41,6 +41,14 @@
    mvn spring-boot:run
    ```
 
+4. **微信扫码登录（可选）**
+
+   如果接入了 `wechatbot-spring-boot-starter`，启动时会打印二维码链接（`WeChat QR URL`）。
+
+   - 默认会优先恢复本地会话，不一定触发扫码
+   - 需要强制扫码时，设置 `wechatbot.force-relogin=true`
+   - 本地会话文件默认路径：`%USERPROFILE%\.wechatbot\java-session-state.json`
+
 ## 配置说明
 
 | 配置项 | 说明 | 默认 |
