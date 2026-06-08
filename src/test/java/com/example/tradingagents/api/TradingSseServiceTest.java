@@ -1,7 +1,6 @@
 package com.example.tradingagents.api;
 
 import com.agent4j.api.Agent;
-import com.agent4j.api.AgentStreamEvent;
 import com.agent4j.api.RunConfig;
 import com.agent4j.api.RunEvent;
 import com.agent4j.core.AgentDefinition;
@@ -26,10 +25,10 @@ class TradingSseServiceTest {
     }
 
     @Test
-    void createStreamConfigMapsRunEventsToAgentStreamEvents() {
+    void createStreamConfigMapsRunEventsToTradingStreamEvents() {
         TradingSseService service = new TradingSseService(null);
-        List<AgentStreamEvent> events = new ArrayList<>();
-        Agent agent = new AgentDefinition().setName("assistant").build();
+        List<TradingStreamEvent> events = new ArrayList<>();
+        Agent agent = new AgentDefinition().setName("market-analyst").build();
 
         RunConfig config = service.createStreamConfig(events::add);
         config.getEventConsumer().accept(RunEvent.of(RunEvent.Type.MODEL_DELTA, agent, "model", "hi", 1));
@@ -38,7 +37,27 @@ class TradingSseServiceTest {
         assertThat(events).hasSize(2);
         assertThat(events.get(0).getType()).isEqualTo("model_delta");
         assertThat(events.get(0).getDelta()).isEqualTo("hi");
-        assertThat(events.get(1).getType()).isEqualTo("run_failed");
+        assertThat(events.get(0).getAgentName()).isEqualTo("market-analyst");
+        assertThat(events.get(0).getStage()).isEqualTo("market_analysis");
+        assertThat(events.get(0).getStageTitle()).isEqualTo("市场分析");
+        assertThat(events.get(0).getScope()).isEqualTo("agent");
+        assertThat(events.get(1).getType()).isEqualTo("agent_run_failed");
         assertThat(events.get(1).getError()).isEqualTo("boom");
+        assertThat(events.get(1).getStage()).isEqualTo("market_analysis");
+    }
+
+    @Test
+    void createStreamConfigDoesNotExposeAgentRunCompletedAsGraphCompletion() {
+        TradingSseService service = new TradingSseService(null);
+        List<TradingStreamEvent> events = new ArrayList<>();
+        Agent agent = new AgentDefinition().setName("market-analyst").build();
+
+        RunConfig config = service.createStreamConfig(events::add);
+        config.getEventConsumer().accept(RunEvent.of(RunEvent.Type.RUN_COMPLETED, agent, "run", null, 1));
+
+        assertThat(events).hasSize(1);
+        assertThat(events.get(0).getType()).isEqualTo("agent_run_completed");
+        assertThat(events.get(0).getScope()).isEqualTo("agent");
+        assertThat(events.get(0).getStage()).isEqualTo("market_analysis");
     }
 }

@@ -93,7 +93,7 @@ POST 请求体与 `/api/trading/propagate` 相同。GET 版本用于浏览器 `E
 - `run_completed`
 - `run_failed`
 
-每条事件的 `data` JSON 结构：
+每条事件的 `data` JSON 结构兼容 agent4j 事件字段，并额外补充前端分组所需的交易阶段元数据：
 
 ```json
 {
@@ -102,11 +102,28 @@ POST 请求体与 `/api/trading/propagate` 相同。GET 版本用于浏览器 `E
   "turn": 1,
   "delta": "增量文本",
   "data": null,
-  "error": null
+  "error": null,
+  "agentName": "market-analyst",
+  "stage": "market_analysis",
+  "stageTitle": "市场分析",
+  "scope": "agent"
 }
 ```
 
+阶段映射：
+
+- `market_analysis`：市场分析
+- `social_sentiment`：社交情绪分析
+- `news_analysis`：新闻分析
+- `fundamentals_analysis`：基本面分析
+- `invest_debate`：投资辩论
+- `trader_decision`：交易员决策
+- `risk_debate`：风险辩论
+- `portfolio_manager`：经理决策
+
 顶层交易编排也会输出 `trading-graph` 的 `run_started`、`run_completed` 或 `run_failed`。最终 `run_completed` 的 `data.finalOutput` 包含：
+
+内部 agent 的 `run_started`、`run_completed`、`run_failed` 会分别映射为 `agent_run_started`、`agent_run_completed`、`agent_run_failed`，避免前端在市场分析等单个 agent 完成时误判整条流结束。前端只应在 `scope === "graph"` 且 `type === "run_completed"` 时关闭连接。
 
 ```json
 {
@@ -129,7 +146,9 @@ source.addEventListener("model_delta", event => {
 
 source.addEventListener("run_completed", event => {
   const message = JSON.parse(event.data);
+  if (message.scope !== "graph") return;
   console.log("final output", message.data?.finalOutput);
+  source.close();
 });
 
 source.addEventListener("run_failed", event => {

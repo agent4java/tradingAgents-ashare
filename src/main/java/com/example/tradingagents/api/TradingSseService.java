@@ -1,7 +1,6 @@
 package com.example.tradingagents.api;
 
 import com.agent4j.api.Agent;
-import com.agent4j.api.AgentStreamEvent;
 import com.agent4j.api.RunConfig;
 import com.agent4j.api.RunEvent;
 import com.agent4j.api.RunResult;
@@ -32,7 +31,7 @@ public class TradingSseService {
 
     public SseEmitter stream(PropagateRequest request) {
         SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT_MILLIS);
-        Consumer<RunEvent> eventConsumer = event -> send(emitter, AgentStreamEvent.fromRunEvent(event));
+        Consumer<RunEvent> eventConsumer = event -> send(emitter, TradingStreamEvent.fromRunEvent(event));
         RunConfig runConfig = createStreamConfig(event -> send(emitter, event));
 
         CompletableFuture.runAsync(() -> {
@@ -60,9 +59,9 @@ public class TradingSseService {
         return emitter;
     }
 
-    RunConfig createStreamConfig(Consumer<AgentStreamEvent> streamConsumer) {
+    RunConfig createStreamConfig(Consumer<TradingStreamEvent> streamConsumer) {
         return RunConfig.builder()
-                .eventConsumer(event -> streamConsumer.accept(AgentStreamEvent.fromRunEvent(event)))
+                .eventConsumer(event -> streamConsumer.accept(TradingStreamEvent.fromRunEvent(event)))
                 .streamModel(true)
                 .build();
     }
@@ -85,7 +84,7 @@ public class TradingSseService {
                 .build();
     }
 
-    private void send(SseEmitter emitter, AgentStreamEvent event) {
+    private void send(SseEmitter emitter, TradingStreamEvent event) {
         try {
             emitter.send(SseEmitter.event()
                     .name(event.getType())
