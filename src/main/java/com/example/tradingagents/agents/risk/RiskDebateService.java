@@ -1,17 +1,18 @@
 package com.example.tradingagents.agents.risk;
 
-import com.example.tradingagents.config.TradingAgentsProperties;
-import com.example.tradingagents.domain.AgentState;
-import com.example.tradingagents.domain.RiskDebateState;
 import com.agent4j.api.Agent;
 import com.agent4j.api.AgentRunner;
+import com.agent4j.api.RunConfig;
 import com.agent4j.api.RunRequest;
 import com.agent4j.api.RunResult;
 import com.agent4j.core.AgentDefinition;
+import com.example.tradingagents.config.TradingAgentsProperties;
+import com.example.tradingagents.domain.AgentState;
+import com.example.tradingagents.domain.RiskDebateState;
 import org.springframework.stereotype.Service;
 
 /**
- * Risk management debate: aggressive vs conservative (and optional neutral), then judge.
+ * Risk management debate: aggressive vs conservative, then judge.
  */
 @Service
 public class RiskDebateService {
@@ -29,6 +30,10 @@ public class RiskDebateService {
     }
 
     public void runDebate(AgentState state) {
+        runDebate(state, null);
+    }
+
+    public void runDebate(AgentState state, RunConfig runConfig) {
         String context = "标的: " + state.getCompanyOfInterest() + ", 日期: " + state.getTradeDate() + "\n" +
                 "交易员投资计划: " + nullToEmpty(state.getTraderInvestmentPlan());
         RiskDebateState debate = state.getRiskDebateState();
@@ -39,22 +44,22 @@ public class RiskDebateService {
         int rounds = Math.max(1, properties.getDebate().getMaxRiskDiscussRounds());
         for (int r = 0; r < rounds; r++) {
             String agg = runAgent("risk-aggressive", AGGRESSIVE_PROMPT,
-                    context + "\n\n当前辩论:\n" + String.join("\n", debate.getHistory()));
+                    context + "\n\n当前辩论:\n" + String.join("\n", debate.getHistory()), runConfig);
             debate.getAggressiveHistory().add(agg);
             debate.getHistory().add("激进: " + agg);
 
             String cons = runAgent("risk-conservative", CONSERVATIVE_PROMPT,
-                    context + "\n\n当前辩论:\n" + String.join("\n", debate.getHistory()));
+                    context + "\n\n当前辩论:\n" + String.join("\n", debate.getHistory()), runConfig);
             debate.getConservativeHistory().add(cons);
             debate.getHistory().add("保守: " + cons);
         }
 
         String judgeDecision = runAgent("risk-judge", JUDGE_PROMPT,
-                context + "\n\n完整辩论:\n" + String.join("\n", debate.getHistory()));
+                context + "\n\n完整辩论:\n" + String.join("\n", debate.getHistory()), runConfig);
         debate.setJudgeDecision(judgeDecision);
     }
 
-    private String runAgent(String name, String prompt, String userMessage) {
+    private String runAgent(String name, String prompt, String userMessage, RunConfig runConfig) {
         Agent agent = new AgentDefinition()
                 .setName(name)
                 .setInstructions(prompt)
@@ -63,7 +68,7 @@ public class RiskDebateService {
                 .input(userMessage)
                 .maxTurns(20)
                 .build();
-        RunResult result = agentRunner.run(agent, request);
+        RunResult result = runConfig != null ? agentRunner.run(agent, request, runConfig) : agentRunner.run(agent, request);
         Object output = result != null ? result.getFinalOutput() : null;
         return output != null ? output.toString() : "";
     }

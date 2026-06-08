@@ -2,6 +2,7 @@ package com.example.tradingagents.agents.analysts;
 
 import com.agent4j.api.Agent;
 import com.agent4j.api.AgentRunner;
+import com.agent4j.api.RunConfig;
 import com.agent4j.api.RunRequest;
 import com.agent4j.api.RunResult;
 import com.agent4j.api.Tool;
@@ -25,6 +26,10 @@ public class SentimentAnalystService {
     }
 
     public String produceReport(String symbol, LocalDate tradeDate) {
+        return produceReport(symbol, tradeDate, null);
+    }
+
+    public String produceReport(String symbol, LocalDate tradeDate, RunConfig runConfig) {
         String userMessage = "标的: " + symbol + ", 交易日期: " + tradeDate
                 + "\n\n请先调用 get_news、get_global_news 获取新闻与舆情数据，再撰写情绪分析报告。";
 
@@ -37,7 +42,7 @@ public class SentimentAnalystService {
                 .input(userMessage)
                 .maxTurns(10)
                 .build();
-        RunResult result = agentRunner.run(agent, request);
+        RunResult result = runConfig != null ? agentRunner.run(agent, request, runConfig) : agentRunner.run(agent, request);
         Object output = result != null ? result.getFinalOutput() : null;
         return output != null ? output.toString() : "";
     }

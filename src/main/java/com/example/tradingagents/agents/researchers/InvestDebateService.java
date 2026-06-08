@@ -1,13 +1,14 @@
 package com.example.tradingagents.agents.researchers;
 
-import com.example.tradingagents.config.TradingAgentsProperties;
-import com.example.tradingagents.domain.AgentState;
-import com.example.tradingagents.domain.InvestDebateState;
 import com.agent4j.api.Agent;
 import com.agent4j.api.AgentRunner;
+import com.agent4j.api.RunConfig;
 import com.agent4j.api.RunRequest;
 import com.agent4j.api.RunResult;
 import com.agent4j.core.AgentDefinition;
+import com.example.tradingagents.config.TradingAgentsProperties;
+import com.example.tradingagents.domain.AgentState;
+import com.example.tradingagents.domain.InvestDebateState;
 import org.springframework.stereotype.Service;
 
 /**
@@ -16,7 +17,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class InvestDebateService {
 
-    private static final String BULL_PROMPT = "你是多头研究员。根据分析师报告，从看多角度论证 A 股标的投资价值，用中文简洁陈述。";
+    private static final String BULL_PROMPT = "你是多头研究员。根据分析师报告，从看多角度论证 A 股标的的投资价值，用中文简洁陈述。";
     private static final String BEAR_PROMPT = "你是空头研究员。根据分析师报告，从看空/风险角度论证，用中文简洁陈述。";
     private static final String JUDGE_PROMPT = "你是投资辩论裁判。根据多头与空头的观点，给出综合判断结论（偏多/偏空/中性）及理由，用中文简洁输出。";
 
@@ -29,6 +30,10 @@ public class InvestDebateService {
     }
 
     public void runDebate(AgentState state) {
+        runDebate(state, null);
+    }
+
+    public void runDebate(AgentState state, RunConfig runConfig) {
         String context = buildContext(state);
         InvestDebateState debate = state.getInvestmentDebateState();
         debate.getBullHistory().clear();
@@ -38,23 +43,23 @@ public class InvestDebateService {
         int rounds = Math.max(1, properties.getDebate().getMaxDebateRounds());
         for (int r = 0; r < rounds; r++) {
             String bullResp = runAgent("bull-researcher", BULL_PROMPT,
-                    context + "\n\n当前辩论历史:\n" + String.join("\n", debate.getHistory()));
+                    context + "\n\n当前辩论历史:\n" + String.join("\n", debate.getHistory()), runConfig);
             debate.getBullHistory().add(bullResp);
             debate.getHistory().add("多头: " + bullResp);
 
             String bearResp = runAgent("bear-researcher", BEAR_PROMPT,
-                    context + "\n\n当前辩论历史:\n" + String.join("\n", debate.getHistory()));
+                    context + "\n\n当前辩论历史:\n" + String.join("\n", debate.getHistory()), runConfig);
             debate.getBearHistory().add(bearResp);
             debate.getHistory().add("空头: " + bearResp);
         }
 
         String judgeDecision = runAgent("invest-judge", JUDGE_PROMPT,
-                context + "\n\n完整辩论:\n" + String.join("\n", debate.getHistory()));
+                context + "\n\n完整辩论:\n" + String.join("\n", debate.getHistory()), runConfig);
         debate.setCurrentResponse(judgeDecision);
         debate.setJudgeDecision(judgeDecision);
     }
 
-    private String runAgent(String name, String prompt, String userMessage) {
+    private String runAgent(String name, String prompt, String userMessage, RunConfig runConfig) {
         Agent agent = new AgentDefinition()
                 .setName(name)
                 .setInstructions(prompt)
@@ -63,7 +68,7 @@ public class InvestDebateService {
                 .input(userMessage)
                 .maxTurns(20)
                 .build();
-        RunResult result = agentRunner.run(agent, request);
+        RunResult result = runConfig != null ? agentRunner.run(agent, request, runConfig) : agentRunner.run(agent, request);
         Object output = result != null ? result.getFinalOutput() : null;
         return output != null ? output.toString() : "";
     }

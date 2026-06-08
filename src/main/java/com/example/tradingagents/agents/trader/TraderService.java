@@ -1,11 +1,12 @@
 package com.example.tradingagents.agents.trader;
 
-import com.example.tradingagents.domain.AgentState;
 import com.agent4j.api.Agent;
 import com.agent4j.api.AgentRunner;
+import com.agent4j.api.RunConfig;
 import com.agent4j.api.RunRequest;
 import com.agent4j.api.RunResult;
 import com.agent4j.core.AgentDefinition;
+import com.example.tradingagents.domain.AgentState;
 import org.springframework.stereotype.Service;
 
 /**
@@ -23,6 +24,10 @@ public class TraderService {
     }
 
     public void producePlan(AgentState state) {
+        producePlan(state, null);
+    }
+
+    public void producePlan(AgentState state, RunConfig runConfig) {
         String context = "标的: " + state.getCompanyOfInterest() + ", 日期: " + state.getTradeDate() + "\n" +
                 "行情: " + nullToEmpty(state.getMarketReport()) + "\n" +
                 "情绪: " + nullToEmpty(state.getSentimentReport()) + "\n" +
@@ -38,7 +43,7 @@ public class TraderService {
                 .input(context)
                 .maxTurns(10)
                 .build();
-        RunResult result = agentRunner.run(agent, request);
+        RunResult result = runConfig != null ? agentRunner.run(agent, request, runConfig) : agentRunner.run(agent, request);
         Object output = result != null ? result.getFinalOutput() : null;
         state.setTraderInvestmentPlan(output != null ? output.toString() : "");
     }

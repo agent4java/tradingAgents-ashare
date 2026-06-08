@@ -1,5 +1,6 @@
 package com.example.tradingagents.graph;
 
+import com.agent4j.api.RunConfig;
 import com.example.tradingagents.agents.analysts.FundamentalsAnalystService;
 import com.example.tradingagents.agents.analysts.MarketAnalystService;
 import com.example.tradingagents.agents.analysts.NewsAnalystService;
@@ -16,7 +17,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Main entry: propagate(symbol, tradeDate) runs the full pipeline and returns (state, processed decision).
+ * Main entry: propagate(symbol, tradeDate) runs the full pipeline and returns state plus processed decision.
  */
 @Service
 public class TradingGraphService {
@@ -51,67 +52,43 @@ public class TradingGraphService {
         this.signalProcessor = signalProcessor;
     }
 
-    /**
-     * Run trading agents pipeline for symbol on tradeDate. selectedAnalysts: "market", "social", "news", "fundamentals".
-     */
     public PropagateResult propagate(String symbol, String tradeDateStr, List<String> selectedAnalysts) {
-        return propagate(symbol, tradeDateStr, selectedAnalysts, new NoopTradingProgressListener());
+        return propagate(symbol, tradeDateStr, selectedAnalysts, null);
     }
 
-    /**
-     * Run trading agents pipeline with optional progress listener for streaming.
-     */
     public PropagateResult propagate(String symbol,
                                      String tradeDateStr,
                                      List<String> selectedAnalysts,
-                                     TradingProgressListener listener) {
-        TradingProgressListener effectiveListener = listener != null ? listener : new NoopTradingProgressListener();
+                                     RunConfig runConfig) {
         LocalDate tradeDate = LocalDate.parse(tradeDateStr);
         AgentState state = new AgentState();
         state.setCompanyOfInterest(symbol);
         state.setTradeDate(tradeDateStr);
 
-        // 分析师阶段：行情、情绪、新闻、基本面
         List<String> analysts = selectedAnalysts != null && !selectedAnalysts.isEmpty()
                 ? selectedAnalysts
                 : List.of("market", "social", "news", "fundamentals");
 
         if (analysts.contains("market")) {
-            state.setMarketReport(marketAnalyst.produceReport(symbol, tradeDate));
-            effectiveListener.onStage(ThinkingStage.ANALYST_MARKET, state);
+            state.setMarketReport(marketAnalyst.produceReport(symbol, tradeDate, runConfig));
         }
         if (analysts.contains("social")) {
-            state.setSentimentReport(sentimentAnalyst.produceReport(symbol, tradeDate));
-            effectiveListener.onStage(ThinkingStage.ANALYST_SENTIMENT, state);
+            state.setSentimentReport(sentimentAnalyst.produceReport(symbol, tradeDate, runConfig));
         }
         if (analysts.contains("news")) {
-            state.setNewsReport(newsAnalyst.produceReport(symbol, tradeDate));
-            effectiveListener.onStage(ThinkingStage.ANALYST_NEWS, state);
+            state.setNewsReport(newsAnalyst.produceReport(symbol, tradeDate, runConfig));
         }
         if (analysts.contains("fundamentals")) {
-            state.setFundamentalsReport(fundamentalsAnalyst.produceReport(symbol, tradeDate));
-            effectiveListener.onStage(ThinkingStage.ANALYST_FUNDAMENTALS, state);
+            state.setFundamentalsReport(fundamentalsAnalyst.produceReport(symbol, tradeDate, runConfig));
         }
 
-        // 研究投资辩论阶段：多头、空头、裁判
-        investDebateService.runDebate(state);
-        effectiveListener.onStage(ThinkingStage.INVEST_DEBATE, state);
-
-        // 交易员阶段：投资计划
-        traderService.producePlan(state);
-        effectiveListener.onStage(ThinkingStage.TRADER, state);
-
-        // 风险辩论阶段：激进、保守、裁判
-        riskDebateService.runDebate(state);
-        effectiveListener.onStage(ThinkingStage.RISK_DEBATE, state);
-
-        // 组合经理阶段：最终决策
-        portfolioManager.produceFinalDecision(state);
-        effectiveListener.onStage(ThinkingStage.PORTFOLIO, state);
+        investDebateService.runDebate(state, runConfig);
+        traderService.producePlan(state, runConfig);
+        riskDebateService.runDebate(state, runConfig);
+        portfolioManager.produceFinalDecision(state, runConfig);
 
         TradeDecision decision = signalProcessor.processSignal(state.getFinalTradeDecision());
         state.setProcessedDecision(decision);
-        effectiveListener.onStage(ThinkingStage.FINAL_DECISION, state);
 
         return new PropagateResult(state, decision);
     }
